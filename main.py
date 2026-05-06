@@ -5,8 +5,8 @@ from graficador import graficar_solucion
 def main():
     #unificar los modulos en el main
     m = 1
-    c = 0
-    k = 4
+    c = 10
+    k = 16
     x0 = 1
     xp0 = 0
 

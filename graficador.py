@@ -1,6 +1,4 @@
 from sympy import *
-import matplotlib.pyplot as plt
-import numpy as np
 import sympy as sp
 
 def graficar_solucion(xt):
