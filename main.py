@@ -1,4 +1,5 @@
 from resolver_laplace import resolver_laplace
+from graficador import graficar_solucion
 
 
 def main():
@@ -11,6 +12,7 @@ def main():
 
     Xt = resolver_laplace(m, c, k, x0, xp0)
     print("x(t) =", Xt)
+    graficar_solucion(Xt)
 
 if __name__ == "__main__":
     main ()
