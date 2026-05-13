@@ -11,36 +11,31 @@ def graficar_solucion(
 
     t = sp.symbols('t', real=True)
 
-    #Convertimos expresion simbolica a funcion numpy
+    # Expresion simbolica -> funcion numpy
     x_func = sp.lambdify(t, xt, modules=['numpy'])
 
-    #Valores de tiempo
+    # Valores de tiempo
     t_vals = np.linspace(t_inicio, t_final, pasos)
 
-    #Evaluacion numerica
+    # Evaluacion numerica
     x_vals = np.real(x_func(t_vals))
 
-    #Garfica
-    plt.figure(figsize=(10, 5))
+    # Figura
+    fig, ax = plt.subplots(figsize=(10, 5))
+    fig.patch.set_facecolor("#0f1117")
+    ax.set_facecolor("#1a1d27")
 
-    plt.plot(
-        t_vals,
-        x_vals,
-        linewidth=1.8
-    )
+    ax.plot(t_vals, x_vals, linewidth=1.8, color="#5b8dee")
+    ax.set_title(titulo, fontsize=11, color="#e2e8f0", pad=12)
+    ax.set_xlabel("Tiempo  t  (s)", color="#94a3b8")
+    ax.set_ylabel("Posicion  x(t)", color="#94a3b8")
+    ax.axhline(0, linestyle='--', linewidth=0.7, color="#475569")
+    ax.tick_params(colors="#94a3b8")
+    for spine in ax.spines.values():
+        spine.set_edgecolor("#2d3250")
+    ax.grid(True, alpha=0.25, color="#334155")
+    fig.tight_layout()
 
-    plt.title(titulo, fontsize=13)
-
-    plt.xlabel("Tiempo t (s)")
-    plt.ylabel("Posicion x(t)")
-
-    plt.axhline(
-        0,
-        linestyle='--',
-        linewidth=0.7
-    )
-
-    plt.grid(True, alpha=0.4)
-    plt.tight_layout()
-    plt.show(block=True)
-    
+    # Retorna la figura — NO llama plt.show()
+    # El hilo principal (app.py) se encarga de mostrarla
+    return fig
