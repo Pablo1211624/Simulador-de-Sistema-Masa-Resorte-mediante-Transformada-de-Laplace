@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
 import math
+import sympy as sp
 
 from resolver_laplace import resolver_laplace
 from graficador import graficar_solucion
@@ -12,11 +13,8 @@ EJERCICIOS = [
         "m": 10,    
         "b": 0.4,  
         "k": 0.16,
-        "x0": 0,    
+        "x0": 0.25,    
         "v0": 0,
-        "step_time": 1, 
-        "initial_value": 0.025, 
-        "final_value": 0,
         "t_inicio": 0,  
         "t_final": 300, 
         "pasos": 600
@@ -26,11 +24,8 @@ EJERCICIOS = [
         "m": 4,     
         "b": 0,    
         "k": 16,
-        "x0": 0,    
+        "x0": 0.25,    
         "v0": 0,
-        "step_time": 1, 
-        "initial_value": 1,     
-        "final_value": 0,
         "t_inicio": 0,  
         "t_final": 10,  
         "pasos": 500
@@ -40,11 +35,8 @@ EJERCICIOS = [
         "m": 10,    
         "b": 0.2,  
         "k": 0.04,
-        "x0": 0,    
+        "x0": 0.25,    
         "v0": 0,
-        "step_time": 1, 
-        "initial_value": 0.025, 
-        "final_value": 0,
         "t_inicio": 0,  
         "t_final": 300, 
         "pasos": 600
@@ -54,11 +46,8 @@ EJERCICIOS = [
         "m": 150,   
         "b": 4.5,  
         "k": 0.03,
-        "x0": 0,    
+        "x0": 0.25,    
         "v0": 0,
-        "step_time": 1, 
-        "initial_value": 1,     
-        "final_value": 0.025,
         "t_inicio": 0,  
         "t_final": 1000,
         "pasos": 800
@@ -68,11 +57,8 @@ EJERCICIOS = [
         "m": 50,    
         "b": 2,    
         "k": 0.02,
-        "x0": 0,    
+        "x0": 0.25,    
         "v0": 0,
-        "step_time": 1, 
-        "initial_value": 1,     
-        "final_value": 0.025,
         "t_inicio": 0,  
         "t_final": 1000,
         "pasos": 800
@@ -96,6 +82,15 @@ FONT_LABEL  = ("Consolas", 9)
 FONT_ENTRY  = ("Consolas", 10)
 FONT_BTN    = ("Consolas", 10, "bold")
 FONT_RESULT = ("Consolas", 9)
+
+def formatear_solucion(expr):
+    expr = sp.simplify(expr)
+    expr = sp.nsimplify(expr)
+
+    texto = sp.pretty(expr, use_unicode=True)
+
+    return f"x(t) =\n{texto}"
+
 
 def clasificar_amortiguamiento(m, b, k):
     discriminante = b**2 - 4 * m * k
@@ -157,7 +152,7 @@ class App:
         tk.Label(header, text="SIMULADOR  MASA-RESORTE",
                  bg=BG, fg=ACCENT, font=FONT_TITLE).pack()
         tk.Label(header,
-                 text="mx''(t) + bx'(t) + kx(t) = f(t)   —   Transformada de Laplace",
+                 text="mx''(t) + bx'(t) + kx(t) = 0   —   Transformada de Laplace",
                  bg=BG, fg=MUTED, font=("Consolas", 9)).pack()
 
 
@@ -228,20 +223,17 @@ class App:
             setattr(self, attr, entry)
 
         #COlumna 1
-        step_f = make_section(parent, "Configuracion Step", 1, 1, padx=6)
+        sim_f = make_section(parent, "Configuracion de simulacion", 1, 1, padx=6)
 
-        labels_step = [
-            ("Step Time",       "e_step_time"),
-            ("Initial Value",   "e_initial"),
-            ("Final Value",     "e_final"),
-            ("Tiempo inicial",  "e_t0"),
-            ("Tiempo final",    "e_tf"),
+        labels_sim = [
+            ("Tiempo inicial",   "e_t0"),
+            ("Tiempo final",     "e_tf"),
             ("Numero de Pasos",   "e_pasos"),
         ]
-        for i, (lbl, attr) in enumerate(labels_step):
-            make_label(step_f, lbl, i, 0)
-            entry = make_entry(step_f, i, 1)
-            setattr(self, attr, entry)
+        for i, (lbl, attr) in enumerate(labels_sim):
+            make_label(sim_f, lbl, i, 0)
+            entry = make_entry(sim_f, i, 1)
+            setattr(self, attr, entry)  
 
         #Columna 2
         res_f = make_section(parent, "Resultados calculados", 1, 2)
@@ -315,9 +307,6 @@ class App:
             (self.e_k,         ej["k"]),
             (self.e_x0,        ej["x0"]),
             (self.e_v0,        ej["v0"]),
-            (self.e_step_time, ej["step_time"]),
-            (self.e_initial,   ej["initial_value"]),
-            (self.e_final,     ej["final_value"]),
             (self.e_t0,        ej["t_inicio"]),
             (self.e_tf,        ej["t_final"]),
             (self.e_pasos,     ej["pasos"]),
@@ -329,7 +318,6 @@ class App:
 
     def limpiar_campos(self):
         for attr in ("e_m","e_b","e_k","e_x0","e_v0",
-                     "e_step_time","e_initial","e_final",
                      "e_t0","e_tf","e_pasos"):
             getattr(self, attr).delete(0, tk.END)
         self.lbl_status.config(text="Modo manual — ingresa los parametros.")
@@ -341,12 +329,10 @@ class App:
             k             = float(self.e_k.get())
             x0            = float(self.e_x0.get())
             v0            = float(self.e_v0.get())
-            step_time     = float(self.e_step_time.get())
-            initial_value = float(self.e_initial.get())
-            final_value   = float(self.e_final.get())
             t_inicio      = float(self.e_t0.get())
             t_final       = float(self.e_tf.get())
             pasos         = int(self.e_pasos.get())
+
         except ValueError:
             messagebox.showerror("Error de entrada",
                                  "Revisa los valores ingresados.\nTodos deben ser numeros.")
@@ -379,8 +365,7 @@ class App:
 
         def run():
             try:
-                Xt = resolver_laplace(m, b, k, x0, v0,
-                                      step_time, initial_value, final_value)
+                Xt = resolver_laplace(m, b, k, x0, v0)
 
                 self.root.after(0, lambda: _mostrar(Xt))
             except Exception as e:
@@ -392,7 +377,7 @@ class App:
 
         def _mostrar(Xt):
             import matplotlib.pyplot as plt
-            self.lbl_xt.config(text=str(Xt))
+            self.lbl_xt.config(text=formatear_solucion(Xt))
             self.lbl_status.config(text="Generando grafica...")
             try:
                 graficar_solucion(

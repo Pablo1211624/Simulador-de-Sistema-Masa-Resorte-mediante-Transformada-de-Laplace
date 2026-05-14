@@ -36,6 +36,6 @@ def graficar_solucion(
     ax.grid(True, alpha=0.25, color="#334155")
     fig.tight_layout()
 
-    # Retorna la figura — NO llama plt.show()
+    # Retorna la figura. NO llama plt.show()
     # El hilo principal (app.py) se encarga de mostrarla
     return fig

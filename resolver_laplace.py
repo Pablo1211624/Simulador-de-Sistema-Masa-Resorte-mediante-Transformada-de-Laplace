@@ -2,27 +2,20 @@ import sympy as sp
 
 def resolver_laplace(
         m, c, k,
-        x0, xp0,
-        step_time,
-        initial_value,
-        final_value):
+        x0, xp0):
     
-    t, s = sp.symbols('t s', real=True)
-    u = sp.Heaviside(t - step_time)
-    f_t = initial_value + (final_value - initial_value) * u
+    s, t = sp.symbols("s t", real=True, positive=True)
 
-    #Transformada de Laplace del STEP
-    F_s = sp.laplace_transform(f_t, t, s, noconds=True)
+    m  = sp.Rational(str(m))
+    b  = sp.Rational(str(c))
+    k  = sp.Rational(str(k))
+    x0 = sp.Rational(str(x0))
+    v0 = sp.Rational(str(xp0))
 
-    numerador = F_s + m*(s*x0 + xp0) + c*x0
-    denominador = m*s**2 + c*s + k
+    X_s = (m*s*x0 + m*v0 + b*x0) / (m*s**2 + b*s + k)
 
-    Xs = numerador / denominador
+    x_t = sp.inverse_laplace_transform(X_s, s, t)
+    x_t = sp.simplify(x_t)
+    x_t = sp.nsimplify(x_t)
 
-    #Inversa de Laplace
-    Xt = sp.inverse_laplace_transform(Xs, s, t)
-
-    Xt = sp.simplify(Xt)
-
-    Xt = Xt.subs(sp.Heaviside(t), 1)
-    return Xt
+    return x_t
